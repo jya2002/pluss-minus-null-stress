@@ -1,0 +1,87 @@
+name: Verify
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: node --test tests/scripts/registration-live-safety.test.mjs
+      - run: node --test tests/scripts/community-live-safety.test.mjs
+      - run: node --test tests/scripts/frontend-config.test.mjs
+      - run: node --test tests/scripts/account-delete-safety.test.mjs
+      - run: node --test tests/edge/*.test.mjs
+      - run: npm run build
+        env:
+          VITE_DEMO_MODE: 'true'
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -- --grep-invert 'real local Supabase'
+      - run: npm run test:e2e -- --config playwright.ui.config.ts
+      - run: npm run build
+        env:
+          VITE_BASE_PATH: /pluss-minus-null-stress/
+          VITE_DEMO_MODE: 'false'
+          VITE_SUPABASE_URL: https://pmns-ui.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ui_test
+      - run: npm run test:pages
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failures
+          path: test-results/
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: local-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:db
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/postgres
+      - run: npm run test:db -- --registration
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/postgres
+      - run: npm run test:db -- --community
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/postgres
+      - run: npm run test:db -- --google-auth
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/postgres
+      - run: npm run test:db -- --account-delete
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/postgres
+      - run: npm run test:db -- --event-delete
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:local-test-only@127.0.0.1:5432/postgres
+  edge-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check --no-lock supabase/functions/account-delete/index.ts supabase/functions/image-upload/index.ts supabase/functions/notifications/index.ts
