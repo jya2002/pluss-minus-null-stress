@@ -624,10 +624,12 @@ small {
   border: 2px solid var(--ink);
   border-radius: 28px;
   overflow: hidden;
-  padding: 0;
   min-height: 320px;
   position: relative;
   max-width: 1160px;
+}
+.container.featured {
+  padding: 0;
 }
 .featured-copy {
   padding: 40px;

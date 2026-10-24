@@ -84,4 +84,4 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - run: deno check --no-lock supabase/functions/account-delete/index.ts supabase/functions/image-upload/index.ts supabase/functions/notifications/index.ts
+      - run: deno check --no-lock --node-modules-dir=auto supabase/functions/account-delete/index.ts supabase/functions/image-upload/index.ts supabase/functions/notifications/index.ts
