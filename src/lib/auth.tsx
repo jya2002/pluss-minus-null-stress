@@ -52,7 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
       const id = next?.user.id ?? null;
       if (previousUser.current !== id) {
-        queryClient.clear();
+        // Drop the previous account's data without detaching mounted queries.
+        // Do not await refetches inside Supabase's auth callback.
+        void queryClient.resetQueries();
+        queryClient.getMutationCache().clear();
         previousUser.current = id;
       }
       setSession(next);
