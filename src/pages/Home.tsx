@@ -11,6 +11,7 @@ import {
   Vote,
 } from "lucide-react";
 import { api, demo } from "../lib/api";
+import { useNow } from "../lib/clock";
 import EventCard from "../components/EventCard";
 import {
   Badge,
@@ -20,6 +21,7 @@ import {
   SectionHeading,
 } from "../components/ui";
 export default function Home() {
+  const now = useNow();
   const events = useQuery({ queryKey: ["events"], queryFn: api.events });
   const summaries = useQuery({ queryKey: ["summary"], queryFn: api.summary });
   const suggestions = useQuery({
@@ -31,21 +33,14 @@ export default function Home() {
     queryFn: api.announcements,
   });
   const upcoming = events.data
-  ?.filter(
-    (e) =>
-      e.status === "published" &&
-      new Date(e.ends_at).getTime() > Date.now()
-  )
-  .sort(
-    (a, b) =>
-      new Date(a.starts_at).getTime() -
-      new Date(b.starts_at).getTime()
-  )
-  .slice(0, 4);
+    ?.filter(
+      (e) => e.status === "published" && new Date(e.ends_at).getTime() > now,
+    )
+    .slice(0, 4);
   const featured = events.data?.find((e) =>
     demo
       ? e.id === "quiz-kaos"
-      : e.status === "published" && new Date(e.ends_at) > new Date(),
+      : e.status === "published" && new Date(e.ends_at).getTime() > now,
   );
   return (
     <>
