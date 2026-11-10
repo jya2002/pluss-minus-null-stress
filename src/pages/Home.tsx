@@ -31,10 +31,17 @@ export default function Home() {
     queryFn: api.announcements,
   });
   const upcoming = events.data
-    ?.filter(
-      (e) => e.status === "published" && new Date(e.ends_at) > new Date(),
-    )
-    .slice(0, 4);
+  ?.filter(
+    (e) =>
+      e.status === "published" &&
+      new Date(e.ends_at).getTime() > Date.now()
+  )
+  .sort(
+    (a, b) =>
+      new Date(a.starts_at).getTime() -
+      new Date(b.starts_at).getTime()
+  )
+  .slice(0, 4);
   const featured = events.data?.find((e) =>
     demo
       ? e.id === "quiz-kaos"
