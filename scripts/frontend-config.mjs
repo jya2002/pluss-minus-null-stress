@@ -15,7 +15,6 @@ export function validateFrontendConfig(mode, env, baseOverride) {
       throw new Error(
         "Server credentials are forbidden in public VITE_ variables. Remove and rotate any exposed secret.",
       );
-    // Check every public value, not just the expected public-key variable.
     for (const token of value.matchAll(
       /[A-Za-z0-9_-]+\.([A-Za-z0-9_-]+)\.[A-Za-z0-9_-]+/g,
     )) {
@@ -34,8 +33,10 @@ export function validateFrontendConfig(mode, env, baseOverride) {
       }
     }
   }
+
   const demo = env.VITE_DEMO_MODE === "true";
   const key = env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "";
+
   if (key && !key.startsWith("sb_publishable_")) {
     try {
       if (
@@ -50,10 +51,12 @@ export function validateFrontendConfig(mode, env, baseOverride) {
       );
     }
   }
+
   if (env.VITE_SUPABASE_URL) {
     try {
       const url = new URL(env.VITE_SUPABASE_URL);
       const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+
       if (
         url.username ||
         url.password ||
@@ -70,13 +73,16 @@ export function validateFrontendConfig(mode, env, baseOverride) {
       );
     }
   }
+
   if (mode === "production" && !demo && (!env.VITE_SUPABASE_URL || !key))
     throw new Error(
       "Production requires Supabase URL and public key. Use explicit VITE_DEMO_MODE=true only for an intentional demo build.",
     );
-  const base =
-    baseOverride || (mode === "production" ? "/pluss-minus-null-stress/" : "/");
+
+  const base = baseOverride || "/";
+
   if (!/^\/(?:[A-Za-z0-9_-]+\/)*$/.test(base))
     throw new Error("Use a local absolute base path with a trailing slash.");
+
   return { base };
 }
