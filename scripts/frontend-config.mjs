@@ -74,8 +74,7 @@ export function validateFrontendConfig(mode, env, baseOverride) {
     throw new Error(
       "Production requires Supabase URL and public key. Use explicit VITE_DEMO_MODE=true only for an intentional demo build.",
     );
-  const base =
-    baseOverride || (mode === "production" ? "/pluss-minus-null-stress/" : "/");
+  const base = baseOverride || "/";
   if (!/^\/(?:[A-Za-z0-9_-]+\/)*$/.test(base))
     throw new Error("Use a local absolute base path with a trailing slash.");
   return { base };
