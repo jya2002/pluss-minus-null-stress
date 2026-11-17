@@ -7,8 +7,8 @@ const env = {
 };
 const jwt = (role) =>
   `header.${Buffer.from(JSON.stringify({ role })).toString("base64url")}.signature`;
-test("production defaults to repository base and development to root", () => {
-  assert.equal(validate("production", env).base, "/pluss-minus-null-stress/");
+test("custom-domain production and development default to root base", () => {
+  assert.equal(validate("production", env).base, "/");
   assert.equal(validate("development", env).base, "/");
   assert.equal(
     validate("production", env, "/another-repo/").base,
