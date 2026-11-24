@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+test.beforeEach(async ({ page }) => {
+  // Keep the dated demo fixtures upcoming regardless of the CI machine's date.
+  // Fix Date only; browser timers keep running for navigation and accessibility.
+  await page.clock.setFixedTime(new Date("2026-11-01T12:00:00Z"));
+});
 test("student visits homepage, searches and opens calendar", async ({
   page,
 }) => {
@@ -24,6 +30,20 @@ test("student visits homepage, searches and opens calendar", async ({
     "scrollWidth",
     await page.locator("body").evaluate((el) => el.clientWidth),
   );
+
+  // The same search must find the event in the archive after its end date.
+  await page.clock.setFixedTime(new Date("2026-11-13T12:00:00Z"));
+  await page.getByRole("button", { name: "Listevisning" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Brettspilltorsdag", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Ingen arrangementer funnet", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Tidligere", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Brettspilltorsdag", exact: true }),
+  ).toBeVisible();
 });
 test("Thursday ideas, draft restrictions and administration protection", async ({
   page,
