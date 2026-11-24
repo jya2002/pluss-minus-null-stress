@@ -7,6 +7,7 @@ export async function googleAuthFlow(
   context: BrowserContext,
   root = "",
   outcome: "success" | "cancelled" | "invalid" = "success",
+  production = false,
 ) {
   const backend = mockBackend();
   await backend.install(context);
@@ -67,7 +68,7 @@ export async function googleAuthFlow(
     });
   });
   await page.goto(`${root}/#/logg-inn?retur=%2Ftorsdagsbanken`);
-  if (root) {
+  if (production) {
     await expect(page.locator("details.auth-alternatives")).not.toHaveAttribute(
       "open",
     );

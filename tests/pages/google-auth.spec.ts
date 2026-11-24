@@ -4,4 +4,4 @@ for (const outcome of ["success", "cancelled", "invalid"] as const)
   test(`Pages Google OAuth ${outcome} (simulated provider)`, async ({
     page,
     context,
-  }) => googleAuthFlow(page, context, "/pluss-minus-null-stress", outcome));
+  }) => googleAuthFlow(page, context, "", outcome, true));

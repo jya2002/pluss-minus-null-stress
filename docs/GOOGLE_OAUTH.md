@@ -23,10 +23,10 @@ Kilder: [Supabase Google-oppsett](https://supabase.com/docs/guides/auth/social-s
 | --- | --- | --- |
 | Google Cloud, utviklingsklient | Authorized redirect URI | `https://gawhbppuhnixqvhnnpnn.supabase.co/auth/v1/callback` |
 | Google Cloud | Authorized JavaScript origin, lokalt | `http://127.0.0.1:5173` |
-| Google Cloud | Authorized JavaScript origin, senere Pages | `https://jya2002.github.io` |
+| Google Cloud, PROD-klient | Authorized JavaScript origin | `https://plussminusnullstress.no` |
+| Google Cloud, PROD-klient | Authorized redirect URI | `https://unrdvalfkusnqhbfhber.supabase.co/auth/v1/callback` |
 | Supabase, utvikling | Tillatt redirect | `http://127.0.0.1:5173/` |
-| Supabase, eventuell lokal Pages-prøve | Tillatt redirect | `http://127.0.0.1:4173/pluss-minus-null-stress/` |
-| Supabase, senere godkjent offentlig bruk | Site URL og tillatt redirect | `https://jya2002.github.io/pluss-minus-null-stress/` |
+| Supabase, PROD | Site URL og tillatt redirect | `https://plussminusnullstress.no/` |
 
 Origins har ikke repo-sti eller avsluttende skråstrek. Supabase-redirectene har repo-sti der det er relevant, og avsluttende skråstrek. `#/logg-inn`, `#/min-side` og `/auth/callback` på frontend skal **ikke** registreres som Google redirect URI. Bruk eksakte adresser uten wildcard. `localhost` og `127.0.0.1` er ulike origins; denne oppskriften bruker sistnevnte.
 
@@ -88,7 +88,7 @@ $env:PLAYWRIGHT_CHANNEL='chrome'
 npm run test:e2e -- --config playwright.ui.config.ts tests/ui/google-auth.spec.ts tests/ui/auth-callback.spec.ts tests/ui/workflows.spec.ts
 ```
 
-Pages-testene krever en build med `/pluss-minus-null-stress/`, fiktiv backend `https://pmns-ui.supabase.co`, offentlig testnøkkel `sb_publishable_ui_test` og demo av, som i CI. Sett eventuelt `PLAYWRIGHT_PAGES_PORT=4184` dersom 4173 er opptatt. Kjør deretter `npm run test:pages`. Testene endrer ikke Auth-innstillinger eller live-data. Portvalget for offline tester endrer ingen Supabase-redirectliste.
+Pages-testene krever en build med base `/`, fiktiv backend `https://pmns-ui.supabase.co`, offentlig testnøkkel `sb_publishable_ui_test` og demo av, som i CI. Sett eventuelt `PLAYWRIGHT_PAGES_PORT=4184` dersom 4173 er opptatt. Kjør deretter `npm run test:pages`. Produksjonsmodus er et eget testvalg, uavhengig av base path; passordskjemaet skal fortsatt være fraværende. Testene endrer ikke Auth-innstillinger eller live-data, og offline preview trenger ingen oppføring i Supabase-redirectlisten. Se [DEPLOYMENT.md](DEPLOYMENT.md) for gjenstående private konsollkontroller for det nye domenet.
 
 ## Videre verifikasjon etter brukerens reelle prøve
 

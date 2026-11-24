@@ -21,8 +21,8 @@ export default defineConfig({
   ],
   webServer: {
     command: `npm run preview -- --port ${port} --strictPort`,
-    url: `${origin}/pluss-minus-null-stress/`,
-    env: { VITE_BASE_PATH: "/pluss-minus-null-stress/" },
+    url: `${origin}/`,
+    env: { VITE_BASE_PATH: "/" },
     reuseExistingServer: false,
   },
 });
