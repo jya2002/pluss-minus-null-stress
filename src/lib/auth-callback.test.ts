@@ -16,13 +16,17 @@ function capture(url: string, path = "/torsdagsbanken?nytt=1") {
     storage,
   };
 }
-it("Pages PKCE callback is routed to login, retains internal destination and strips code before SDK/router", () => {
+it.each([
+  "https://plussminusnullstress.no/",
+  "https://association.github.io/pluss-minus-null-stress/",
+])("PKCE callback retains its root and strips code before SDK/router: %s", (root) => {
   const { result, history } = capture(
-    "https://association.github.io/pluss-minus-null-stress/?code=private-code&sb_flow_id=flow-123",
+    root + "?code=private-code&sb_flow_id=flow-123",
   );
   expect(result).toEqual({ code: "private-code", flowId: "flow-123" });
   const url = new URL(history.replaceState.mock.calls[0][2]);
-  expect(url.pathname).toBe("/pluss-minus-null-stress/");
+  expect(url.origin).toBe(new URL(root).origin);
+  expect(url.pathname).toBe(new URL(root).pathname);
   expect(url.search).toBe("");
   expect(url.hash).toBe("#/logg-inn?retur=%2Ftorsdagsbanken%3Fnytt%3D1");
 });

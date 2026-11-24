@@ -30,13 +30,13 @@ jobs:
       - run: npm run test:e2e -- --config playwright.ui.config.ts
       - run: npm run build
         env:
-          VITE_BASE_PATH: /pluss-minus-null-stress/
+          VITE_BASE_PATH: /
           VITE_DEMO_MODE: 'false'
           VITE_SUPABASE_URL: https://pmns-ui.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ui_test
       - run: npm run test:pages
         env:
-          VITE_BASE_PATH: /pluss-minus-null-stress/
+          VITE_BASE_PATH: /
           VITE_DEMO_MODE: 'false'
           VITE_SUPABASE_URL: https://pmns-ui.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ui_test

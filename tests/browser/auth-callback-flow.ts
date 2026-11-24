@@ -4,6 +4,7 @@ export async function authCallbackFlow(
   page: Page,
   context: BrowserContext,
   root = "",
+  production = false,
 ) {
   let changedInputControl = false;
   page.on("console", (message) => {
@@ -48,9 +49,9 @@ export async function authCallbackFlow(
     });
   });
   await page.goto(`${root}/#/logg-inn?retur=%2Ftorsdagsbanken`);
-  if (root)
+  if (production)
     await page.getByText("Andre innloggingsmåter", { exact: true }).click();
-  if (!root)
+  if (!production)
     await page
       .getByRole("button", { name: "Innloggingslenke", exact: true })
       .click();

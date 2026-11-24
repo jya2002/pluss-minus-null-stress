@@ -1,6 +1,8 @@
 # GitHub Pages og produksjonsforberedelse
 
-**Ingen offentlig produksjonsdeploy er utført eller automatisk godkjent.** Repoet heter `pluss-minus-null-stress`; Pages-basen er `/pluss-minus-null-stress/`. Lokalt brukes `/`.
+Produksjonsadressen er **https://plussminusnullstress.no/**. Både produksjon og lokal utvikling bruker base `/`. GitHub Pages leverer nå domenets rot, ikke repo-understien `/pluss-minus-null-stress/`.
+
+Lesende kontroll 24. november 2026 med Chrome viste HTML 200, men JS/CSS 404 under den gamle repo-understien og en tom React-rot. Denne rettelsen klargjør en ny build; merge og deploy krever fortsatt godkjenning.
 
 ## 1. Kildekode og CI
 
@@ -14,27 +16,41 @@ I Settings > Pages velges **GitHub Actions**. Opprett repository variables, ikke
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_BASE_PATH=/`
+
+Produksjonsworkflowen krever fortsatt nøyaktig `https://unrdvalfkusnqhbfhber.supabase.co`, en ikke-tom offentlig nøkkel og base `/`. Demo og utviklingspassord er eksplisitt av. Lesende kontroll 24. november bekreftet riktig repository-base, PROD-ref og offentlig nøkkeltype; ingen nøkkelverdier er logget eller lagret i Git.
 
 Dette er offentlige klientverdier, og beskyttelsen ligger i RLS. Builden avviser gjenkjennelige Supabase-secret-/service-role-nøkler i public key-feltet. Ikke stol på dette som eneste hemmelighetskontroll.
 
 Opprett environment `github-pages` med required reviewer hvis kontoplanen støtter det. Pages-workflowen har bare `workflow_dispatch`, så vanlig push deployer ikke. Etter godkjente tester og lanseringsgjennomgang starter en ansvarlig manuelt «Deploy approved release to GitHub Pages».
 
-`VITE_BASE_PATH=/pluss-minus-null-stress/` er eksplisitt satt i workflowen. Vite skriver asset-lenker med denne basen. React HashRouter sørger for fungerende dypkoblinger uten serverfallback. Verifiser `/pluss-minus-null-stress/#/arrangementer` ved direkte åpning og omlasting etter første godkjente deploy.
+`VITE_BASE_PATH=/` brukes i workflowen og som standard i Vite-valideringen. Vite skriver asset-lenker under `/assets/`. React HashRouter sørger for fungerende dypkoblinger uten serverfallback. Verifiser `https://plussminusnullstress.no/#/arrangementer` ved direkte åpning og omlasting etter godkjent deploy. Kontroller også JS/CSS, logo, favicon, Google-bilde og lokal font for 200-svar og riktig innholdstype.
 
 Lokal reproduksjon i PowerShell:
 
 ```powershell
-$env:VITE_BASE_PATH='/pluss-minus-null-stress/'
+$env:VITE_BASE_PATH='/'
+$env:VITE_DEMO_MODE='false'
+$env:VITE_SUPABASE_URL='https://pmns-ui.supabase.co'
+$env:VITE_SUPABASE_PUBLISHABLE_KEY='sb_publishable_ui_test'
 npm run build
-Remove-Item Env:VITE_BASE_PATH
-npm run preview
+npm run test:pages
 ```
 
-`Remove-Item Env:...` fjerner bare den midlertidige prosessvariabelen. Besøk repo-stien i preview ved base-test. Ingen hemmeligheter skal inngå i byggartefakter.
+Dette er en lokal produksjonsbuild med fiktiv backend og simulerte OAuth-/API-svar; den skal ikke deployes som produksjon. `test:pages` starter Vite preview på `/` og tester den ferdige `dist`, ikke utviklingsserveren. Bruk en egen terminal og lukk den etterpå slik at testvariablene ikke påvirker andre builds. Ingen hemmeligheter skal inngå i byggartefakter.
 
 ## 3. Supabase-produksjon
 
-Bruk et separat produksjonsprosjekt. Gjennomgå migrasjonene og kjør dry-run før godkjent anvendelse. Bruk aldri reset/seed mot produksjon. Konfigurer nøyaktig Site URL/redirect, SMTP, Edge Functions, secrets, Vault, scheduler og bilder som i [SUPABASE.md](SUPABASE.md).
+Behold produksjonsprosjektet `unrdvalfkusnqhbfhber` og installerte migrasjoner. Domene-/baseendringen trenger ingen databasemigrasjon, reset, seed eller endring av bruker-/arrangementsdata.
+
+Før godkjent deploy må en ansvarlig kontrollere disse innstillingene i eksisterende PROD-oppsett:
+
+- Supabase Auth: Site URL og eksakt tillatt Redirect URL `https://plussminusnullstress.no/`, uten hash og uten repo-understi.
+- Google Cloud: den aktuelle PROD-klientens Authorized JavaScript origin `https://plussminusnullstress.no` og Authorized redirect URI `https://unrdvalfkusnqhbfhber.supabase.co/auth/v1/callback`. Ikke erstatt Supabase-callbacken med frontendens adresse.
+- Eventuell `www`-adresse må enten returnere til den kanoniske adressen eller få eksplisitt godkjent Auth-/origin-oppsett. Ikke legg til wildcard som snarvei.
+- Aktive Edge Functions må ha riktig offentlig origin `https://plussminusnullstress.no`. Lesende OPTIONS mot PROD `account-delete` ga 404 den 24. november; funksjonens tilgjengelighet må avklares separat før kontosletting kan godkjennes. Dette er ikke årsaken til asset-feilen.
+
+Offentlig GET av Auth-settings ga 200 og Google aktivert. Privat Site URL/redirectliste og Google Cloud-konsollen kunne ikke leses med tilgjengelige tilganger og er derfor **ikke verifisert**. Lokal produksjonspreview tester redirect/PKCE med mocks; faktisk Google-innlogging, retur, utlogging og eksisterende roller må kontrolleres etter en separat godkjent deploy. Ingen Auth-innstilling er endret i denne rettelsen.
 
 Rotasjon av `.env`-verdier krever ny frontend-build. Rotasjon av serversecrets gjøres i Supabase og krever ingen frontendnøkkel. Endring av `ALLOWED_ORIGIN` må samsvare med faktisk origin uten repo-sti.
 
